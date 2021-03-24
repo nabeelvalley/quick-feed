@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react'
  */
 const useStickyState = <T>(
   key: string,
-  defaultValue?: T
+  defaultValue?: T,
 ): [T, (value: T) => void] => {
   const [value, setValue] = useState<T>(() => {
     const stickyValue = window.localStorage.getItem(key)

@@ -1,11 +1,12 @@
 import React, { FormEventHandler, useState } from 'react'
-import './App.css'
-import useFeedUrlStore from './hooks/useFeedUrlStore'
-import clearWhitespace from './string/clearWhitespace'
+import useFeedUrlStore from '../hooks/useFeedUrlStore'
+import clearWhitespace from '../string/clearWhitespace'
+import '../styles/globals.css'
 
 const App = () => {
   const [url, setUrl] = useState<string>('')
-  const [feedUrls, addFeedUrl] = useFeedUrlStore()
+  const [feedUrls, addFeedUrl, removeFeedUrl] = useFeedUrlStore()
+  const [activeFeed, setActiveFeed] = useState<string | undefined>()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,7 +24,7 @@ const App = () => {
         <h1>Quick Feed</h1>
         <p>The Open Source RSS Feed Reader</p>
       </section>
-      
+
       <section>
         <h2>Add a Feed</h2>
         <form onSubmit={handleSubmit}>
@@ -39,9 +40,17 @@ const App = () => {
         <h2>Feeds</h2>
         <ul>
           {feedUrls.map((f, i) => (
-            <li key={i}>{f}</li>
+            <li key={i}>
+              <button onClick={() => removeFeedUrl(f)}>🔥</button>
+              <button onClick={() => setActiveFeed(f)}>✨</button>
+              {f}
+            </li>
           ))}
         </ul>
+      </section>
+
+      <section>
+        <h2>Section Content</h2>
       </section>
     </main>
   )
