@@ -11,9 +11,13 @@ const useStickyState = <T>(
   defaultValue?: T,
 ): [T, (value: T) => void] => {
   const [value, setValue] = useState<T>(() => {
-    const stickyValue = window.localStorage.getItem(key)
+    // TODO: Find a more correct method of syncing state, probably use a DB and SWR
+    const stickyValue =
+      typeof window !== 'undefined'
+        ? window.localStorage.getItem(key)
+        : undefined
 
-    return stickyValue !== null ? JSON.parse(stickyValue) : defaultValue
+    return stickyValue !== undefined ? JSON.parse(stickyValue) : defaultValue
   })
 
   useEffect(() => {
