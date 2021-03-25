@@ -17,7 +17,7 @@ const useStickyState = <T>(
         ? window.localStorage.getItem(key)
         : undefined
 
-    return stickyValue !== undefined ? JSON.parse(stickyValue) : defaultValue
+    return stickyValue? JSON.parse(stickyValue) : defaultValue
   })
 
   useEffect(() => {

@@ -13,22 +13,4 @@ const fetcher = async <T>(
   return parsed
 }
 
-/**
- * Default fetcher for swr, simply wraps `fetch` and returns the parsed JSON
- * @param input
- * @param init
- * @returns parsed XMLDocument
- */
-export const xmlFetcher = async (input: RequestInfo, init?: RequestInit) => {
-  const response = await fetch(input, init)
-  console.log(response)
-  const str = await response.text()
-  const xml: XMLDocument = await new DOMParser().parseFromString(
-    str,
-    'text/xml',
-  )
-
-  return xml
-}
-
 export default fetcher
