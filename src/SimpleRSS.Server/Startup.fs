@@ -23,7 +23,7 @@ type Startup() =
             .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie()
                 .Services
-            .AddRemoting<BookService>()
+            .AddRemoting<UserService>()
             .AddBoleroHost()
 #if DEBUG
             .AddHotReload(templateDir = __SOURCE_DIRECTORY__ + "/../SimpleRSS.Client")
