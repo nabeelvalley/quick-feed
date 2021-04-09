@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  # mongonode0:27017
+  mongo0:
+    image: mongo
+    hostname: mongo0
+    container_name: mongo0
+    restart: always
+    ports:
+      - '37000:27017'
+    volumes:
+      - ./mongo0-data:/data/db
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: root
+    #   MONGO_INITDB_ROOT_PASSWORD: password

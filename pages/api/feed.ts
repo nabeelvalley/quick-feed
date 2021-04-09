@@ -3,6 +3,7 @@ import RssFeed, { Channel } from '../../types/RssFeed'
 import fetch from "isomorphic-unfetch"
 import { parseStringPromise } from 'xml2js'
 
+// TODO: refactor to use rss-parser for rss reading
 export default async (req: NextApiRequest, res: NextApiResponse<Channel>) => {
   if (typeof req.query.url !== 'string') {
     res.status(400)
