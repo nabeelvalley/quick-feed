@@ -1,8 +1,10 @@
 namespace SimpleRSS.Persistence
 
-open SimpleRSS.Persistence.Types.Connector
-open System.Linq
 open System
+open System.Linq
+open System.Collections.Generic
+open SimpleRSS.Persistence.Types.Connector
+
 
 module InMemory =
 
@@ -10,37 +12,53 @@ module InMemory =
     let createStore<'T> () : Store<int, 'T> =
         let mutable db : 'T list = []
 
-        let create data: UpdateResult<'T> =
+        let create data : CreateResult<'T> =
             try
                 db <- List.append db [ data ]
-                Success data
-            with 
-            | ex -> Error ex  
+                CreateResult.Success data
+            with ex -> CreateResult.Error ex
 
-        let get id: GetResult<'T> =
-            try 
-              match db[id] with
-              | None -> NotFound
-              | Some d -> Success d
+        let get (id: int) : GetResult<'T> =
+            try
+                db.[id] |> GetResult.Success
             with
-            | ex -> Error ex
+            | :? ArgumentException -> GetResult.NotFound
+            | ex -> GetResult.Error ex
 
-        let getAll id: GetManyResult<'T> =
-            try 
-              Success db
+        let getAll () : GetManyResult<'T> =
+            try
+                GetManyResult.Success db
+            with ex -> GetManyResult.Error ex
+
+
+        let getWhere predicate : GetManyResult<'T> =
+            try
+                List.filter predicate db |> GetManyResult.Success
+            with ex -> GetManyResult.Error ex
+
+        let update (id: int) (data: 'T) : UpdateResult<'T> =
+            try
+                db <- List.mapi (fun i d -> if i = id then data else data) db
+                db.[id] |> UpdateResult.Success
             with
-            | ex -> Error ex
+            | :? ArgumentException -> UpdateResult.NotFound
+            | ex -> UpdateResult.Error ex
 
-        
+        let delete id: DeleteResult =
+            try
+              db <-
+                  db
+                  |> List.indexed
+                  |> List.filter (fun (i, _) -> i <> id)
+                  |> List.map (fun (i, d) -> d)
 
+              DeleteResult.Success
+            with
+            | ex -> DeleteResult.Error ex
 
-                /// defines required functionality for a Store
-    // type Store<'Id, 'Data> =
-    //   { create: string -> UpdateResult<'Data>
-    //     get: 'Id -> GetResult<'Data>
-    //     getWhere: ('Data -> bool) -> GetManyResult<'Data>
-    //     getAll: 'Data -> GetManyResult<'Data>
-    //     update: 'Data -> UpdateResult<'Data>
-    //     delete: 'Data -> DeleteResult }
-
-       
+        { create = create
+          get = get
+          getWhere = getWhere
+          getAll = getAll
+          update = update
+          delete = delete }

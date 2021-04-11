@@ -5,6 +5,11 @@ module Connector =
 
     type UpdateResult<'Data> =
         | Success of 'Data
+        | NotFound
+        | Error of exn
+
+    type CreateResult<'Data> =
+        | Success of 'Data
         | Error of exn
 
     type GetResult<'Data> =
@@ -20,20 +25,22 @@ module Connector =
         | Success
         | Error of exn
 
+    type Predicate<'T> = 'T -> bool
+
     /// defines required functionality for a Store
     type Store<'Id, 'Data> =
-        { create: string -> UpdateResult<'Data>
+        { create: 'Data -> CreateResult<'Data>
           get: 'Id -> GetResult<'Data>
-          getWhere: ('Data -> bool) -> GetManyResult<'Data>
+          getWhere: Predicate<'Data> -> GetManyResult<'Data>
           getAll: unit -> GetManyResult<'Data>
-          update: 'Data -> UpdateResult<'Data>
-          delete: 'Data -> DeleteResult }
+          update: 'Id -> 'Data -> UpdateResult<'Data>
+          delete: 'Id -> DeleteResult }
 
     /// defines required functionality for an Async Store
     type AsyncStore<'Id, 'Data> =
-        { create: string -> Async<UpdateResult<'Data>>
+        { create: 'Data -> Async<CreateResult<'Data>>
           get: 'Id -> Async<GetResult<'Data>>
-          getWhere: ('Data -> bool) -> Async<GetManyResult<'Data>>
+          getWhere: Predicate<'Data> -> Async<GetManyResult<'Data>>
           getAll: unit -> Async<GetManyResult<'Data>>
-          update: 'Data -> Async<UpdateResult<'Data>>
-          delete: 'Data -> Async<DeleteResult> }
+          update: 'Id -> 'Data -> Async<UpdateResult<'Data>>
+          delete: 'Id -> Async<DeleteResult> }

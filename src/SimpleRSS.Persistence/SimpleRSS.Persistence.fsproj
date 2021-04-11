@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <Compile Include="Types/Connector.fs" />
-    <Compile Include="Types/Connector.test.fs" />
     <Compile Include="Store/InMemory.fs" />
     <Compile Include="Store/InMemory.test.fs" />
     <Compile Include="Store/MongoDB.fs" />
