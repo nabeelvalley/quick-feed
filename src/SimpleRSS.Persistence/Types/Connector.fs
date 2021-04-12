@@ -29,18 +29,18 @@ module Connector =
 
     /// defines required functionality for a Store
     type Store<'Id, 'Data> =
-        { create: 'Data -> CreateResult<'Data>
-          get: 'Id -> GetResult<'Data>
-          getWhere: Predicate<'Data> -> GetManyResult<'Data>
-          getAll: unit -> GetManyResult<'Data>
-          update: 'Id -> 'Data -> UpdateResult<'Data>
-          delete: 'Id -> DeleteResult }
+        abstract member create : 'Data -> CreateResult<'Data>
+        abstract member get : 'Id -> GetResult<'Data>
+        abstract member getWhere : Predicate<'Data> -> GetManyResult<'Data>
+        abstract member getAll : unit -> GetManyResult<'Data>
+        abstract member update : 'Id -> 'Data -> UpdateResult<'Data>
+        abstract member delete : 'Id -> DeleteResult
 
     /// defines required functionality for an Async Store
     type AsyncStore<'Id, 'Data> =
-        { create: 'Data -> Async<CreateResult<'Data>>
-          get: 'Id -> Async<GetResult<'Data>>
-          getWhere: Predicate<'Data> -> Async<GetManyResult<'Data>>
-          getAll: unit -> Async<GetManyResult<'Data>>
-          update: 'Id -> 'Data -> Async<UpdateResult<'Data>>
-          delete: 'Id -> Async<DeleteResult> }
+        abstract member create : 'Data -> Async<CreateResult<'Data>>
+        abstract member get : 'Id -> Async<GetResult<'Data>>
+        abstract member getWhere : Predicate<'Data> -> Async<GetManyResult<'Data>>
+        abstract member getAll : unit -> Async<GetManyResult<'Data>>
+        abstract member update : 'Id -> 'Data -> Async<UpdateResult<'Data>>
+        abstract member delete : 'Id -> Async<DeleteResult>
