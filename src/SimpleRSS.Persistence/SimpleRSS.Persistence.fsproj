@@ -10,8 +10,6 @@
     <Compile Include="Store/InMemory.test.fs" />
     <Compile Include="Store/MongoDB.fs" />
     <Compile Include="Store/MongoDB.test.fs" />
-    <Compile Include="Library.fs" />
-    <Compile Include="Library.test.fs" />
   </ItemGroup>
 
   <ItemGroup>

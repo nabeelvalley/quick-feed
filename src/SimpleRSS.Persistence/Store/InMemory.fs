@@ -8,10 +8,8 @@ open SimpleRSS.Persistence.Types.Connector
 
 module InMemory =
 
-    // type for cast usage of inMemory 
-    type InMemoryStoreCast<'T> = Store<int, 'T>
-
-    /// create a store with a mutable list as the db
+    /// create a `Store` with a `mutable list` as the db.
+    /// implements Connector.Store
     type InMemoryStore<'T>() =
 
         let mutable db : 'T list = []
@@ -20,10 +18,9 @@ module InMemory =
 
             member this.create data : CreateResult<'T> =
                 try
-                  db <- List.append db [ data ]
-                  CreateResult.Success data
-                with
-                | ex -> CreateResult.Error ex
+                    db <- List.append db [ data ]
+                    CreateResult.Success data
+                with ex -> CreateResult.Error ex
 
             member this.get(id: int) : GetResult<'T> =
                 try
@@ -32,12 +29,11 @@ module InMemory =
                 | :? ArgumentException -> GetResult.NotFound
                 | ex -> GetResult.Error ex
 
-            member this.getAll() : GetManyResult<'T> = 
-              try 
-                GetManyResult.Success db
-              with 
-              | ex -> GetManyResult.Error ex
-              
+            member this.getAll() : GetManyResult<'T> =
+                try
+                    GetManyResult.Success db
+                with ex -> GetManyResult.Error ex
+
             member this.getWhere predicate : GetManyResult<'T> =
                 try
                     List.filter predicate db |> GetManyResult.Success
@@ -61,3 +57,7 @@ module InMemory =
 
                     DeleteResult.Success
                 with ex -> DeleteResult.Error ex
+
+    /// create an `InMemoryStore` instance and downcast to `Store`
+    let createStore<'T> () =
+        new InMemoryStore<'T>() :> Store<int, 'T>
