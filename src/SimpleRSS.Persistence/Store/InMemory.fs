@@ -71,6 +71,6 @@ module InMemory =
                     DeleteResult.Success
                 with ex -> DeleteResult.Error ex
 
-    /// create an `InMemoryStore` instance and downcast to `Store`
+    /// create an `InMemoryStore` instance and upcast to `Store`
     let createStore<'T> () =
         new InMemoryStore<'T>() :> Store<int, 'T>

@@ -48,9 +48,10 @@ module InMemoryTest =
     [<InlineData(0, "zero")>]
     [<InlineData(1, "one")>]
     [<InlineData(2, "two")>]
-    let ``InMemoryStore.get id -> returns correct item`` (index, expected) =
+    let ``InMemoryStore.get id -> returns correct item`` (index, value) =
         let items = [ "zero"; "one"; "two" ]
         let expectedDb = GetManyResult.Success items
+        let expected = GetResult.Success(index, value)
 
         let sut =
             new InMemoryStore<string>() :> Store<int, string>
@@ -59,4 +60,4 @@ module InMemoryTest =
 
         let actual = sut.get index
 
-        Assert.Equal(GetResult.Success expected, actual)
+        Assert.Equal(expected, actual)
