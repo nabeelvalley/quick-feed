@@ -11,8 +11,8 @@ module InMemoryTest =
     [<InlineData("test1")>]
     [<InlineData("test2")>]
     let ``InMemoryStore.create -> adds item to db`` (item) =
-        let expectedEl = CreateResult.Success item
-        let expectedDb = GetManyResult.Success [ item ]
+        let expectedEl = CreateResult.Success(0, item)
+        let expectedDb = GetManyResult.Success [ 0, item ]
 
         let sut =
             new InMemoryStore<string>() :> Store<int, string>
@@ -29,7 +29,11 @@ module InMemoryTest =
     [<InlineData(2, "two")>]
     let ``InMemoryStore.create multiple-> adds all to db`` (index, expected) =
         let items = [ "zero"; "one"; "two" ]
-        let expectedDb = GetManyResult.Success items
+
+        let expectedDb =
+            items
+            |> List.mapi (fun i item -> (i, item))
+            |> GetManyResult.Success
 
         let sut =
             new InMemoryStore<string>() :> Store<int, string>

@@ -8,40 +8,53 @@ open SimpleRSS.Persistence.Types.Connector
 
 module InMemory =
 
+    type Item<'D> = int * 'D
+
     /// create a `Store` with a `mutable list` as the db.
     /// implements Connector.Store
     type InMemoryStore<'T>() =
 
-        let mutable db : 'T list = []
+        let mutable db : Item<'T> list = []
+
+        let nextId (d: (int * 'T) list) : int =
+            if List.length d > 0 then
+                let (id, _) = List.last d
+                id + 1
+            else
+                0
 
         interface Store<int, 'T> with
 
-            member this.create data : CreateResult<'T> =
+            member this.create data : CreateResult<Item<'T>> =
                 try
-                    db <- List.append db [ data ]
-                    CreateResult.Success data
+                    let id = nextId db
+                    db <- List.append db [ (id, data) ]
+                    CreateResult.Success(id, data)
                 with ex -> CreateResult.Error ex
 
-            member this.get(id: int) : GetResult<'T> =
+            member this.get(id: int) : GetResult<Item<'T>> =
                 try
-                    db.[id] |> GetResult.Success
+                    db
+                    |> List.find (fun (x, _) -> x = id)
+                    |> GetResult.Success
                 with
-                | :? ArgumentException -> GetResult.NotFound
+                | :? KeyNotFoundException -> GetResult.NotFound
                 | ex -> GetResult.Error ex
 
-            member this.getAll() : GetManyResult<'T> =
+            member this.getAll() : GetManyResult<Item<'T>> =
                 try
                     GetManyResult.Success db
                 with ex -> GetManyResult.Error ex
 
-            member this.getWhere predicate : GetManyResult<'T> =
+            member this.getWhere predicate : GetManyResult<Item<'T>> =
                 try
-                    List.filter predicate db |> GetManyResult.Success
+                    List.filter (fun (_, d) -> predicate d) db
+                    |> GetManyResult.Success
                 with ex -> GetManyResult.Error ex
 
-            member this.update (id: int) (data: 'T) : UpdateResult<'T> =
+            member this.update (id: int) (data: 'T) : UpdateResult<Item<'T>> =
                 try
-                    db <- List.mapi (fun i d -> if i = id then data else data) db
+                    db <- List.map (fun (i, d) -> if i = id then (i, data) else (i, d)) db
                     db.[id] |> UpdateResult.Success
                 with
                 | :? ArgumentException -> UpdateResult.NotFound
