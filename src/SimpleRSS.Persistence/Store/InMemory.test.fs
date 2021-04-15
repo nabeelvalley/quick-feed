@@ -3,6 +3,8 @@ namespace SimpleRSS.Persistence
 open Xunit
 open SimpleRSS.Persistence.InMemory
 open SimpleRSS.Persistence.Types.Connector
+open SimpleRSS.Persistence.Store.Utils
+open System
 
 module InMemoryTest =
 
@@ -12,83 +14,94 @@ module InMemoryTest =
     [<InlineData("test0")>]
     [<InlineData("test1")>]
     [<InlineData("test2")>]
-    let ``InMemoryStore.create -> adds item to db`` (item) =
-        let expectedEl = CreateResult.Success(0, item)
-        let expectedDb = GetManyResult.Success [ 0, item ]
+    let ``InMemoryStore.create -> adds item to db`` (expectedEl) =
+        let expectedEl = expectedEl
+        let expectedDb = [ expectedEl ]
 
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
-
-        let actual = sut.create (item)
+        let sut = createStore<string> ()
+        let actual = sut.create (expectedEl)
         let db = sut.getAll ()
 
-        Assert.Equal(expectedEl, actual)
-        Assert.Equal(expectedDb, db)
+        match actual with
+        | CreateResult.Success s -> Assert.Equal(expectedEl, valOf s)
+        | _ -> failwith "result not CreateResult.Success"
 
-    [<Theory>]
-    [<InlineData(0, "zero")>]
-    [<InlineData(1, "one")>]
-    [<InlineData(2, "two")>]
-    let ``InMemoryStore.create multiple-> adds all to db`` (index, expected) =
-        let expectedDb =
-            testItems
-            |> List.mapi (fun i item -> (i, item))
-            |> GetManyResult.Success
+        match db with
+        | GetManyResult.Success d ->
+            let vals = d |> List.map valOf
+            Assert.Equal<string list>(expectedDb, vals)
+        | _ -> failwith "result not GetManyResult.Success"
 
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+
+    [<Fact>]
+    let ``InMemoryStore.create multiple-> adds all to db`` () =
+
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
         let actual = sut.getAll ()
 
-        Assert.Equal(expectedDb, actual)
+        match actual with
+        | GetManyResult.Success d -> Assert.Equal<string list>(testItems, valsOf d)
+        | _ -> failwith "result not GetManyResult.Success"
 
 
-    [<Theory>]
-    [<InlineData(0, "zero")>]
-    [<InlineData(1, "one")>]
-    [<InlineData(2, "two")>]
-    let ``InMemoryStore.get id -> correct item`` (index, value) =
-        let expected = GetResult.Success(index, value)
 
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+    [<Fact>]
+    let ``InMemoryStore.get id -> correct item`` () =
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
-        let actual = sut.get index
+        let all = sut.getAll ()
 
-        Assert.Equal(expected, actual)
+        match all with
+        | GetManyResult.Success a ->
+            let handleAssert e =
+                let actual = sut.get (idOf e)
+
+                match actual with
+                | GetResult.Success a -> Assert.Equal(valOf e, valOf a)
+                | _ -> failwith "result not GetResult.Success"
+
+            let expected0 = a.[0]
+            let expected1 = a.[1]
+            let expected2 = a.[2]
+
+            [ expected0; expected1; expected2 ]
+            |> List.map handleAssert
+
+
+        | _ -> failwith "result not GetManyResult.Success"
 
     [<Fact>]
     let ``InMemoryStore.get invalid id -> NotFound`` () =
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
-        let actual = sut.get 1000
+        let actual = sut.get (Guid.NewGuid())
 
         Assert.Equal(GetResult.NotFound, actual)
 
     [<Fact>]
     let ``InMemoryStore.getWhere -> Success`` () =
-        let expected = GetManyResult.Success [ (1, "one") ]
+        let expected = [ "one" ]
 
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
         let actual = sut.getWhere (fun d -> d = "one")
 
-        Assert.Equal(expected, actual)
+        match actual with
+        | GetManyResult.Success a -> Assert.Equal<string list>(expected, valsOf a)
+        | _ -> failwith "result not GetManyResult.Success"
 
     [<Fact>]
     let ``InMemoryStore.getWhere erroring -> Error`` () =
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
@@ -102,91 +115,80 @@ module InMemoryTest =
 
     [<Fact>]
     let ``InMemoryStore.getAll id -> expected db`` () =
-        let expected =
-            testItems
-            |> List.mapi (fun i d -> (i, d))
-            |> GetManyResult.Success
-
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
         let actual = sut.getAll ()
 
-        Assert.Equal(expected, actual)
-
-    [<Fact>]
-    let ``InMemoryStore.delete -> Success`` () =
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
-
-        List.map sut.create testItems |> ignore
-
-        let result = sut.delete 1
-
-        match result with
-        | Error _ -> failwith "sut.delete result not Success"
-        | Success -> () // test passes
-
+        match actual with
+        | GetManyResult.Success a -> Assert.Equal<string list>(testItems, valsOf a)
+        | _ -> failwith "result not GetManyResult.Success"
 
     [<Fact>]
     let ``InMemoryStore.delete -> expected db`` () =
-        let expectedDb =
-            GetManyResult.Success [ (0, "zero")
-                                    (2, "two") ]
+        let expectedDb = [ "zero"; "two" ]
 
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
-        sut.delete 1 |> ignore
+        let db = sut.getAll ()
 
-        let actual = sut.getAll ()
+        match db with
+        | GetManyResult.Success d ->
+            let second = d.[1]
 
-        Assert.Equal(expectedDb, actual)
+            let actualDelete = sut.delete (idOf second)
 
+            match actualDelete with
+            | DeleteResult.Success -> () // pass
+            | _ -> failwith "result not DeleteResult.Success"
 
-    [<Fact>]
-    let ``InMemoryStore.create indexes correctly after delete`` () =
-        let expectedCreate = CreateResult.Success(3, "three")
-        let expectedGet = GetResult.Success(3, "three")
+            let dbAfterDelete = sut.getAll ()
 
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+            match dbAfterDelete with
+            | GetManyResult.Success d -> Assert.Equal<string list>(expectedDb, valsOf d)
+            | _ -> failwith "result not GetManyResult.Success"
 
-        List.map sut.create testItems |> ignore
+        | _ -> failwith "result not GetManyResult.Success"
 
-        let actualCreate = sut.create "three"
-        let actualGet = sut.get 3
-
-        Assert.Equal(expectedCreate, actualCreate)
-        Assert.Equal(expectedGet, actualGet)
 
 
     [<Fact>]
     let ``InMemoryStore.update -> updates correctly`` () =
-        let expectedUpdate = UpdateResult.Success(1, "updated")
-        let expectedGet = GetResult.Success(1, "updated")
+        let item = "updated"
 
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
-        let actualUpdate = sut.update 1 "updated"
-        let actualGet = sut.get 1
+        let db = sut.getAll ()
 
-        Assert.Equal(expectedUpdate, actualUpdate)
-        Assert.Equal(expectedGet, actualGet)
+        match db with
+        | GetManyResult.Success d ->
+            let first = d.[0]
+
+            let actualUpdate = sut.update (idOf first) item
+
+            match actualUpdate with
+            | UpdateResult.Success u -> Assert.Equal(item, valOf u)
+            | _ -> failwith "result not UpdateResult.Success"
+
+            let actualGet = sut.get (idOf first)
+
+            match actualGet with
+            | GetResult.Success g -> Assert.Equal(item, valOf g)
+            | _ -> failwith "result not GetResult.Success"
+        | _ -> failwith "result not GetManyResult.Success"
+
 
     [<Fact>]
     let ``InMemoryStore.update invalid id -> NotFound`` () =
-        let sut =
-            new InMemoryStore<string>() :> Store<int, string>
+        let sut = createStore<string> ()
 
         List.map sut.create testItems |> ignore
 
-        let actual = sut.update 1000 "non-existent entry"
+        let actual =
+            sut.update (Guid.NewGuid()) "non-existent entry"
 
         Assert.Equal(UpdateResult.NotFound, actual)

@@ -8,7 +8,7 @@ open SimpleRSS.Persistence.Types.Connector
 
 module InMemory =
 
-    type Item<'D> = int * 'D
+    type Item<'D> = Guid * 'D
 
     /// create a `Store` with a `mutable list` as the db.
     /// implements Connector.Store
@@ -16,23 +16,18 @@ module InMemory =
 
         let mutable db : Item<'T> list = []
 
-        let nextId (d: (int * 'T) list) : int =
-            if List.length d > 0 then
-                let (id, _) = List.last d
-                id + 1
-            else
-                0
+        let nextId = Guid.NewGuid
 
-        interface Store<int, 'T> with
+        interface Store<Guid, 'T> with
 
             member this.create data : CreateResult<Item<'T>> =
                 try
-                    let id = nextId db
+                    let id = nextId ()
                     db <- List.append db [ (id, data) ]
                     CreateResult.Success(id, data)
                 with ex -> CreateResult.Error ex
 
-            member this.get(id: int) : GetResult<Item<'T>> =
+            member this.get(id: Guid) : GetResult<Item<'T>> =
                 try
                     db
                     |> List.find (fun (x, _) -> x = id)
@@ -52,25 +47,25 @@ module InMemory =
                     |> GetManyResult.Success
                 with ex -> GetManyResult.Error ex
 
-            member this.update (id: int) (data: 'T) : UpdateResult<Item<'T>> =
+            member this.update (id: Guid) (data: 'T) : UpdateResult<Item<'T>> =
                 try
                     db <- List.map (fun (i, d) -> if i = id then (i, data) else (i, d)) db
-                    db.[id] |> UpdateResult.Success
+
+                    db
+                    |> List.find (fun (x, _) -> x = id)
+                    |> UpdateResult.Success
                 with
+                | :? KeyNotFoundException -> UpdateResult.NotFound
                 | :? ArgumentException -> UpdateResult.NotFound
                 | ex -> UpdateResult.Error ex
 
             member this.delete id : DeleteResult =
                 try
-                    db <-
-                        db
-                        |> List.indexed
-                        |> List.filter (fun (i, _) -> i <> id)
-                        |> List.map (fun (i, d) -> d)
+                    db <- db |> List.filter (fun (i, _) -> i <> id)
 
                     DeleteResult.Success
                 with ex -> DeleteResult.Error ex
 
     /// create an `InMemoryStore` instance and upcast to `Store`
     let createStore<'T> () =
-        new InMemoryStore<'T>() :> Store<int, 'T>
+        new InMemoryStore<'T>() :> Store<Guid, 'T>
