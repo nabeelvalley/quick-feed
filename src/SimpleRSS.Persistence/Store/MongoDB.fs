@@ -6,9 +6,14 @@ open SimpleRSS.Persistence.Types.Connector
 open MongoDB.Bson
 open MongoDB.FSharp
 open MongoDB.Driver
+open SimpleRSS.Persistence.Store.Utils
 
 module MongoDB =
     type Item<'D> = ObjectId * 'D
+
+    type DBItem<'D> = { _id: ObjectId; data: 'D }
+
+    let dbFromItem i = { _id = idOf i; data = valOf i }
 
     /// create a `Store` with a `mutable list` as the db.
     /// implements Connector.Store
@@ -17,58 +22,64 @@ module MongoDB =
         let client = MongoClient(connectionString)
         let db = client.GetDatabase(dbName)
 
+        let collection =
+            db.GetCollection<DBItem<'T>>(collectionName)
+
         let mutable db : Item<'T> list = []
 
         let nextId () = new ObjectId()
 
-        interface Store<ObjectId, 'T> with
+        interface AsyncStore<ObjectId, 'T> with
 
-            member this.create data : CreateResult<Item<'T>> =
-                try
-                    let id = nextId ()
-                    db <- List.append db [ (id, data) ]
-                    CreateResult.Success(id, data)
-                with ex -> CreateResult.Error ex
+            member this.create data : Async<CreateResult<Item<'T>>> =
+                async {
+                    try
+                        let dbItem = dbFromItem (nextId (), data)
 
-            member this.get(id: ObjectId) : GetResult<Item<'T>> =
-                try
-                    db
-                    |> List.find (fun (x, _) -> x = id)
-                    |> GetResult.Success
-                with
-                | :? KeyNotFoundException -> GetResult.NotFound
-                | ex -> GetResult.Error ex
+                        collection.InsertOneAsync(dbItem)
+                        |> Async.AwaitTask
+                        |> ignore
 
-            member this.getAll() : GetManyResult<Item<'T>> =
-                try
-                    GetManyResult.Success db
-                with ex -> GetManyResult.Error ex
+                        return CreateResult.Error(exn "Not implemented yet")
+                    with ex -> return CreateResult.Error ex
+                }
 
-            member this.getWhere predicate : GetManyResult<Item<'T>> =
-                try
-                    List.filter (fun (_, d) -> predicate d) db
-                    |> GetManyResult.Success
-                with ex -> GetManyResult.Error ex
+            member this.get(id: ObjectId) : Async<GetResult<Item<'T>>> =
+                async {
+                    try
+                        return GetResult.Error(exn "Not Implemented")
+                    with ex -> return GetResult.Error ex
+                }
 
-            member this.update (id: ObjectId) (data: 'T) : UpdateResult<Item<'T>> =
-                try
-                    db <- List.map (fun (i, d) -> if i = id then (i, data) else (i, d)) db
+            member this.getAll() : Async<GetManyResult<Item<'T>>> =
+                async {
+                    try
+                        return GetManyResult.Error(exn "Not Implemented")
+                    with ex -> return GetManyResult.Error ex
+                }
 
-                    db
-                    |> List.find (fun (x, _) -> x = id)
-                    |> UpdateResult.Success
-                with
-                | :? KeyNotFoundException -> UpdateResult.NotFound
-                | :? ArgumentException -> UpdateResult.NotFound
-                | ex -> UpdateResult.Error ex
+            member this.getWhere predicate : Async<GetManyResult<Item<'T>>> =
+                async {
+                    try
+                        return GetManyResult.Error(exn "Not Implemented")
+                    with ex -> return GetManyResult.Error ex
+                }
 
-            member this.delete id : Types.Connector.DeleteResult =
-                try
-                    db <- db |> List.filter (fun (i, _) -> i <> id)
 
-                    DeleteResult.Success
-                with ex -> DeleteResult.Error ex
+            member this.update (id: ObjectId) (data: 'T) : Async<UpdateResult<Item<'T>>> =
+                async {
+                    try
+                        return UpdateResult.Error(exn "Not Implemented")
+                    with ex -> return UpdateResult.Error ex
+                }
+
+            member this.delete id : Async<Types.Connector.DeleteResult> =
+                async {
+                    try
+                        return DeleteResult.Error(exn "Not Implemented")
+                    with ex -> return DeleteResult.Error ex
+                }
 
     /// create an `MongoDBStore` instance and upcast to `Store`
     let createStore<'T> connectionString dbName collectionName =
-        new MongoDBStore<'T>(connectionString, dbName, collectionName) :> Store<ObjectId, 'T>
+        new MongoDBStore<'T>(connectionString, dbName, collectionName) :> AsyncStore<ObjectId, 'T>
