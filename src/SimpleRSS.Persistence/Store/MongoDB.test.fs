@@ -11,45 +11,51 @@ module MongoDBTest =
         | Email of string
         | None
 
-    type TestData = { Name: string; Email: Email }
+    type TestData = { Name: string; Email: string }
 
     let connectionString = "mongodb://localhost:27017"
     let dbName = "simple-rss-test"
     let collectionName = "mongodb-test"
 
-    let createTestStore () =
+    let createTestStore<'T> () =
         createStore<'T> connectionString dbName collectionName
 
     let testItems =
-        [ { Name = ""
-            Email = Email "test@email.com" }
+        [ { Name = ""; Email = "test@email.com" }
+          { Name = ""; Email = "test2@email.com" }
+          { Name = ""; Email = "" } ]
+
+    let getTestItems () =
+        [ { Name = Guid.NewGuid().ToString()
+            Email = Guid.NewGuid().ToString() }
           { Name = ""
-            Email = Email "test2@email.com" }
-          { Name = ""; Email = None } ]
+            Email = Guid.NewGuid().ToString() }
+          { Name = ""; Email = "" } ]
 
     [<Theory>]
-    [<InlineData("test0")>]
-    [<InlineData("test1")>]
-    [<InlineData("test2")>]
-    let ``MongoDBStore.create -> adds item to db`` (expectedEl) =
+    [<InlineData(0)>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    let ``MongoDBStore.create -> adds item to db`` (testDataIndex) =
         async {
-
-            let expectedEl = testItems.[0]
-            let expectedDb = [ expectedEl ]
+            let items = getTestItems ()
+            let expectedEl = items.[testDataIndex]
 
             let sut = createTestStore ()
             let! actual = sut.create (expectedEl)
-            let db = sut.getAll ()
+            let! db = sut.getAll ()
+
+            // failwith (sprintf "%O \n%O" actual db)
 
             match actual with
             | CreateResult.Success s -> Assert.Equal(expectedEl, valOf s)
             | _ -> failwith "result not CreateResult.Success"
 
-        // match db with
-        // | GetManyResult.Success d ->
-        //     let vals = d |> List.map valOf
-        //     Assert.Equal<string list>(expectedDb, vals)
-        // | _ -> failwith "result not GetManyResult.Success"
+            match db with
+            | GetManyResult.Success d ->
+                let containsNewEl = valsOf d |> List.contains expectedEl
+                Assert.True(containsNewEl)
+            | _ -> failwith "result not GetManyResult.Success"
         }
 
 

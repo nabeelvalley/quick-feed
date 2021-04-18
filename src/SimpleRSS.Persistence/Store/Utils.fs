@@ -13,3 +13,21 @@ module Utils =
 
     /// Get `List<'T>` data from `List<'Id * T>` tuples
     let valsOf<'Id, 'T> (data: List<'Id * 'T>) = List.map snd data
+
+    let mapAsync mapper asnc =
+        async {
+            let! value = asnc
+            return value |> mapper
+        }
+
+    let mapFromAsync mapper asnc =
+        async {
+            let! value = asnc
+            return! value |> mapper
+        }
+
+    let bindASync binder asnc =
+        async {
+            let! value = asnc
+            return! binder asnc
+        }
