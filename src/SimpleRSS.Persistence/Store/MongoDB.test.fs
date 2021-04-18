@@ -7,10 +7,6 @@ open SimpleRSS.Persistence.Store.Utils
 open System
 
 module MongoDBTest =
-    type Email =
-        | Email of string
-        | None
-
     type TestData = { Name: string; Email: string }
 
     let connectionString = "mongodb://localhost:27017"

@@ -2,12 +2,11 @@ namespace SimpleRSS.Persistence
 
 open System
 open System.Collections.Generic
-open SimpleRSS.Persistence.Types.Connector
+open System.Threading.Tasks
 open MongoDB.Bson
 open MongoDB.Driver
 open SimpleRSS.Persistence.Store.Utils
-open System.Threading.Tasks
-open System.Collections.Generic
+open SimpleRSS.Persistence.Types.Connector
 
 module MongoDB =
     type Item<'D> = ObjectId * 'D
@@ -26,8 +25,9 @@ module MongoDB =
 
 
     /// create a `Store` with a `mutable list` as the db.
+    /// the `'Dto` type must be database serializable.
     /// implements Connector.Store
-    type MongoDBStore<'T>(connectionString: string, dbName: string, collectionName: string) =
+    type MongoDBStore<'Dto>(connectionString: string, dbName: string, collectionName: string) =
 
         let client = MongoClient connectionString
         let db = client.GetDatabase dbName
@@ -36,7 +36,7 @@ module MongoDB =
 
         let nextId () = ObjectId.GenerateNewId()
 
-        let get (id: ObjectId) : Async<GetResult<Item<'T>>> =
+        let get (id: ObjectId) : Async<GetResult<Item<'Dto>>> =
             async {
                 try
                     let! item =
@@ -52,10 +52,10 @@ module MongoDB =
                 | ex -> return GetResult.Error ex
             }
 
-        interface AsyncStore<ObjectId, 'T> with
-            member this.get(id: ObjectId) : Async<GetResult<Item<'T>>> = async { return! get (id) }
+        interface AsyncStore<ObjectId, 'Dto> with
+            member this.get(id: ObjectId) : Async<GetResult<Item<'Dto>>> = async { return! get (id) }
 
-            member this.create data : Async<CreateResult<Item<'T>>> =
+            member this.create data : Async<CreateResult<Item<'Dto>>> =
                 async {
                     try
                         let id = nextId ()
@@ -74,11 +74,11 @@ module MongoDB =
                     with ex -> return CreateResult.Error ex
                 }
 
-            member this.getAll() : Async<GetManyResult<Item<'T>>> =
+            member this.getAll() : Async<GetManyResult<Item<'Dto>>> =
                 async {
                     try
                         let! (items) =
-                            collection.FindAsync<DBItem<'T>>(Builders.Filter.Empty)
+                            collection.FindAsync<DBItem<'Dto>>(Builders.Filter.Empty)
                             |> cursorToList
 
                         let data =
@@ -88,7 +88,7 @@ module MongoDB =
                     with ex -> return GetManyResult.Error ex
                 }
 
-            member this.getWhere predicate : Async<GetManyResult<Item<'T>>> =
+            member this.getWhere predicate : Async<GetManyResult<Item<'Dto>>> =
                 async {
                     try
                         return GetManyResult.Error(exn "Not Implemented")
@@ -96,7 +96,7 @@ module MongoDB =
                 }
 
 
-            member this.update (id: ObjectId) (data: 'T) : Async<UpdateResult<Item<'T>>> =
+            member this.update (id: ObjectId) (data: 'Dto) : Async<UpdateResult<Item<'Dto>>> =
                 async {
                     try
                         return UpdateResult.Error(exn "Not Implemented")
