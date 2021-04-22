@@ -1,10 +1,9 @@
-namespace SimpleRSS.Reader
+namespace SimpleRSS.Reader.Types
 
 open System
-open CodeHollow.FeedReader
 open SimpleRSS.Reader.Utils
 
-module Types =
+module Feed =
     type Feed =
         { title: string
           link: string
@@ -13,7 +12,7 @@ module Types =
           copyright: string
           lastUpdatedDate: DateTime option
           imageUrl: string
-          items: FeedItem list }
+          items: FeedItem.FeedItem list }
 
         static member fromClass(obj: CodeHollow.FeedReader.Feed) =
             { title = obj.Title
@@ -26,5 +25,5 @@ module Types =
               items =
                   obj.Items
                   |> Seq.cast
-                  |> Seq.map SimpleRSS.Reader.Types.FeedItem.fromClass
+                  |> Seq.map FeedItem.FeedItem.fromClass
                   |> List.ofSeq }

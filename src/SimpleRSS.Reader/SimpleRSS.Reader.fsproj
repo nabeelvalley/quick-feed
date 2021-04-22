@@ -6,8 +6,9 @@
   <ItemGroup>
     <Compile Include="Utils.fs" />
     <Compile Include="Paging.fs" />
-    <Compile Include="Types/Feed.fs" />
+    <Compile Include="Types/Reader.fs" />
     <Compile Include="Types/FeedItem.fs" />
+    <Compile Include="Types/Feed.fs" />
     <Compile Include="Library.fs" />
   </ItemGroup>
   <ItemGroup>

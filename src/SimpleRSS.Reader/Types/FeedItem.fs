@@ -3,7 +3,7 @@ namespace SimpleRSS.Reader.Types
 open System
 open SimpleRSS.Reader.Utils
 
-module Types =
+module FeedItem =
     type FeedItem =
         { title: string
           link: string
