@@ -5,12 +5,10 @@ open SimpleRSS.Reader.Types.Reader
 open SimpleRSS.Reader.Paging
 
 module Library =
-    /// <summary>Retrieves the RSS feed document at the given URL including items with paging applied.</summary>
-    /// <param name="reader">The RSS parser/reader to use. See <code>Reader.fs</code>.</param>
-    /// <param name="pagingOpts">Paging options for the feed's items. A page size &lt; 1 will include all items.</param>
-    /// <param name="feedUrl">The full URL to the feed document, including or excluding <code>http(s)://</code>.</param>
-    /// <remarks>It's unlikely you'd have to use this function directly. See <code>getFeedPaged</code>.</remarks>
-    let getFeedPagedWithReader (reader: IReader) (feedUrl: string) (pagingOpts: PagingOptions) =
+    // To avoid ambiguity with CodeHollow.FeedReader.Feed
+    type SRFeed = SimpleRSS.Reader.Types.Feed.Feed
+
+    let readFeed (reader: IReader) (feedUrl: string) (pagingOpts: PagingOptions) : Async<SRFeed> =
         async {
             let! feed =
                 reader.GetAbsoluteUrl feedUrl
@@ -24,6 +22,23 @@ module Library =
                 else
                     { feed' with
                           items = applyPaging pagingOpts feed'.items }
+        }
+
+
+    /// <summary>Retrieves the RSS feed document at the given URL including items with paging applied.</summary>
+    /// <param name="reader">The RSS parser/reader to use. See <code>Reader.fs</code>.</param>
+    /// <param name="pagingOpts">Paging options for the feed's items. A page size &lt; 1 will include all items.</param>
+    /// <param name="feedUrl">The full URL to the feed document, including or excluding <code>http(s)://</code>.</param>
+    /// <remarks>It's unlikely you'd have to use this function directly. See <code>getFeedPaged</code>.</remarks>
+    let getFeedPagedWithReader (reader: IReader) (feedUrl: string) (pagingOpts: PagingOptions) : Async<Result<SRFeed, string>> =
+        async {
+            try
+                let! feed = readFeed reader feedUrl pagingOpts
+                return Ok(feed)
+            with
+                | _ as e ->
+                    printfn $"{e}"
+                    return Error($"Could not retrieve feed at {feedUrl}")
         }
 
     /// <summary>Retrieves the RSS feed document at the given URL including items with paging applied.</summary>
