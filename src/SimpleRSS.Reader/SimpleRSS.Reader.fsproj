@@ -9,6 +9,8 @@
     <Compile Include="Types/Reader.fs" />
     <Compile Include="Types/FeedItem.fs" />
     <Compile Include="Types/Feed.fs" />
+    <Compile Include="Types\FeedItem.test.fs" />
+    <Compile Include="Types\Feed.test.fs" />
     <Compile Include="Library.fs" />
     <Compile Include="Paging.test.fs" />
   </ItemGroup>

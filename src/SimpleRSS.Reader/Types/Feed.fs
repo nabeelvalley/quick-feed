@@ -10,6 +10,7 @@ module Feed =
           description: string
           language: string
           copyright: string
+          lastUpdatedDateString: string
           lastUpdatedDate: DateTime option
           imageUrl: string
           items: FeedItem.FeedItem list }
@@ -20,6 +21,7 @@ module Feed =
               description = obj.Description
               language = obj.Language
               copyright = obj.Copyright
+              lastUpdatedDateString = obj.LastUpdatedDateString
               lastUpdatedDate = nullableToOption obj.LastUpdatedDate
               imageUrl = obj.ImageUrl
               items =

@@ -8,6 +8,7 @@ module FeedItem =
         { title: string
           link: string
           description: string
+          publishingDateString: string
           publishingDate: DateTime option
           author: string
           id: string
@@ -18,6 +19,7 @@ module FeedItem =
             { title = obj.Title
               link = obj.Link
               description = obj.Description
+              publishingDateString = obj.PublishingDateString
               publishingDate = nullableToOption obj.PublishingDate
               author = obj.Author
               id = obj.Id
