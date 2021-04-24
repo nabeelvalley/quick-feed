@@ -1,7 +1,5 @@
 namespace SimpleRSS.Reader
 
-open System
-
 module Paging =
     type PagingOptions =
         {
