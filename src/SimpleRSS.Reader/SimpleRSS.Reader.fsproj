@@ -13,6 +13,7 @@
     <Compile Include="Types\Feed.test.fs" />
     <Compile Include="Library.fs" />
     <Compile Include="Paging.test.fs" />
+    <Compile Include="Library.test.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
