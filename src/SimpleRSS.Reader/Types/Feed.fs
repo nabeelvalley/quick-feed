@@ -15,17 +15,17 @@ module Feed =
           imageUrl: string
           items: FeedItem.FeedItem list }
 
-        static member fromClass(obj: CodeHollow.FeedReader.Feed) =
-            { title = obj.Title
-              link = obj.Link
-              description = obj.Description
-              language = obj.Language
-              copyright = obj.Copyright
-              lastUpdatedDateString = obj.LastUpdatedDateString
-              lastUpdatedDate = nullableToOption obj.LastUpdatedDate
-              imageUrl = obj.ImageUrl
-              items =
-                  obj.Items
-                  |> Seq.cast
-                  |> Seq.map FeedItem.FeedItem.fromClass
-                  |> List.ofSeq }
+    let fromClass (obj: CodeHollow.FeedReader.Feed) =
+        { title = obj.Title
+          link = obj.Link
+          description = obj.Description
+          language = obj.Language
+          copyright = obj.Copyright
+          lastUpdatedDateString = obj.LastUpdatedDateString
+          lastUpdatedDate = nullableToOption obj.LastUpdatedDate
+          imageUrl = obj.ImageUrl
+          items =
+              obj.Items
+              |> Seq.cast
+              |> Seq.map FeedItem.fromClass
+              |> List.ofSeq }

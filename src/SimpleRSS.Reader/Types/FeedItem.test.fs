@@ -38,7 +38,7 @@ let ``fromClass maps all fields`` () =
     let chFeedItem = createCHFeedItem()
 
     let expected = createSRFeedItem()
-    let actual = SRFeedItem.fromClass chFeedItem
+    let actual = SimpleRSS.Reader.Types.FeedItem.fromClass chFeedItem
 
     Assert.Equal(expected, actual)
 
@@ -53,6 +53,6 @@ let ``fromClass maps all fields, None publishing date`` () =
               publishingDateString = "2020-01-140T12:34:56"
               publishingDate = None }
 
-    let actual = SRFeedItem.fromClass chFeedItem
+    let actual = SimpleRSS.Reader.Types.FeedItem.fromClass chFeedItem
 
     Assert.Equal(expected, actual)

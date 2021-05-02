@@ -16,7 +16,7 @@ module Library =
         async {
             let! feed = reader.GetAbsoluteUrl feedUrl |> reader.ReadAsync
 
-            let feed' = Feed.fromClass feed
+            let feed' = fromClass feed
 
             return
                 match pagingOpts with

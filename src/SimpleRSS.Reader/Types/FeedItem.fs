@@ -15,13 +15,13 @@ module FeedItem =
           categories: string list
           content: string }
 
-        static member fromClass(obj: CodeHollow.FeedReader.FeedItem) =
-            { title = obj.Title
-              link = obj.Link
-              description = obj.Description
-              publishingDateString = obj.PublishingDateString
-              publishingDate = nullableToOption obj.PublishingDate
-              author = obj.Author
-              id = obj.Id
-              categories = obj.Categories |> Seq.cast |> List.ofSeq
-              content = obj.Content }
+    let fromClass (obj: CodeHollow.FeedReader.FeedItem) =
+        { title = obj.Title
+          link = obj.Link
+          description = obj.Description
+          publishingDateString = obj.PublishingDateString
+          publishingDate = nullableToOption obj.PublishingDate
+          author = obj.Author
+          id = obj.Id
+          categories = obj.Categories |> Seq.cast |> List.ofSeq
+          content = obj.Content }

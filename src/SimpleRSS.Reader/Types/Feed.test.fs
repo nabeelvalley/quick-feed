@@ -67,7 +67,7 @@ let ``fromClass maps all fields`` () =
     let chFeed = createCHFeed ()
 
     let expected = createSRFeed ()
-    let actual = SRFeed.fromClass chFeed
+    let actual = SimpleRSS.Reader.Types.Feed.fromClass chFeed
 
     Assert.Equal(expected, actual)
 
@@ -82,7 +82,7 @@ let ``None publishing date`` () =
               lastUpdatedDateString = "2020-01-140T12:34:56"
               lastUpdatedDate = None }
 
-    let actual = SRFeed.fromClass chFeed
+    let actual = SimpleRSS.Reader.Types.Feed.fromClass chFeed
 
     Assert.Equal(expected, actual)
 
@@ -92,7 +92,7 @@ let ``no items`` () =
     chFeed.Items <- ResizeArray<CHFeedItem> []
 
     let expected = { createSRFeed () with items = [] }
-    let actual = SRFeed.fromClass chFeed
+    let actual = SimpleRSS.Reader.Types.Feed.fromClass chFeed
 
     Assert.Equal(expected, actual)
 
@@ -113,6 +113,6 @@ let ``multiple items`` () =
                     createSRFeedItem ()
                     createSRFeedItem () ] }
 
-    let actual = SRFeed.fromClass chFeed
+    let actual = SimpleRSS.Reader.Types.Feed.fromClass chFeed
 
     Assert.Equal(expected, actual)
