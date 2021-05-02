@@ -1,13 +1,17 @@
 namespace SimpleRSS.Reader
 
 module Paging =
+    /// <remarks>
+    /// You probably shouldn't instantiate this record directly, use <see cref="createOptions" />.
+    /// </remarks>
     type PagingOptions =
-        {
-          /// <summary>The amount of items to include on each page.</summary>
-          pageSize: int
+        private
+            {
+              /// <summary>The amount of items to include on each page.</summary>
+              pageSize: int
 
-          /// <summary>The zero-indexed page number to retrieve.</summary>
-          pageNumber: int }
+              /// <summary>The zero-indexed page number to retrieve.</summary>
+              pageNumber: int }
 
     /// <summary>
     /// Skips up to <code>amount</code> elements of <code>lst</code>, capping the amount skipped to
@@ -19,7 +23,7 @@ module Paging =
     /// <param name="amount">Desired amount of elements to skip.</param>
     /// <param name="lst">The whose elements to skip.</param>
     /// <returns>A new list with the remaining elements. Might be empty.</returns>
-    let skipSafely (amount: int) (lst: _ list) = List.skip (min amount lst.Length) lst
+    let private skipSafely (amount: int) (lst: _ list) = List.skip (min amount lst.Length) lst
 
     /// <summary>
     /// Takes up to <code>amount</code> elements of <code>lst</code>, capping the amount taken to
@@ -31,7 +35,18 @@ module Paging =
     /// <param name="amount">Desired amount of elements to take.</param>
     /// <param name="lst">The whose elements to take.</param>
     /// <returns>A new list with up to <code>amount</code> items. Might be empty.</returns>
-    let takeSafely (amount: int) (lst: _ list) = List.take (min amount lst.Length) lst
+    let private takeSafely (amount: int) (lst: _ list) = List.take (min amount lst.Length) lst
+
+    let createPagingOptions pageSize pageNumber : Result<PagingOptions, string> =
+        if pageSize < 1 then
+            Error "Page size cannot be less than 1"
+        else if pageNumber < 0 then
+            Error "Page number cannot be less than 0"
+        else
+            Ok(
+                { pageSize = pageSize
+                  pageNumber = pageNumber }
+            )
 
     let applyPaging<'a> (pagingOpts: PagingOptions) (items: 'a list) : 'a list =
         items

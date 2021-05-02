@@ -4,6 +4,7 @@ open System
 open Xunit
 open SimpleRSS.Reader.Types.Reader
 open SimpleRSS.Reader.Library
+open SimpleRSS.Reader.Utils
 open Xunit.Sdk
 
 type CHFeed = CodeHollow.FeedReader.Feed
@@ -77,6 +78,8 @@ let okOrFail =
     | Ok x -> x
     | Error _ -> raise (XunitException())
 
+let createPagingOptions = SimpleRSS.Reader.Paging.createPagingOptions
+
 [<Fact>]
 let ``no paging - general test`` =
     let testUrl = "test"
@@ -120,8 +123,10 @@ let ``paging - 4 items 4 page size`` () =
 
     let expected = createSRFeed ()
 
+    let pagingOpts = unwrap (createPagingOptions 4 0)
+
     let actual =
-        getFeedPagedWithReader mockReader testUrl { pageSize = 4; pageNumber = 0 }
+        getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
         |> Async.RunSynchronously
         |> okOrFail
 
@@ -148,8 +153,10 @@ let ``paging - page size smaller than item count`` () =
                   [ createSRFeedItem ()
                     createSRFeedItem () ] }
 
+    let pagingOpts = unwrap (createPagingOptions 2 0)
+
     let actual =
-        getFeedPagedWithReader mockReader testUrl { pageSize = 2; pageNumber = 0 }
+        getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
         |> Async.RunSynchronously
         |> okOrFail
 
@@ -177,8 +184,10 @@ let ``paging - page size greater than item count`` () =
                     createSRFeedItem ()
                     createSRFeedItem () ] }
 
+    let pagingOpts = unwrap (createPagingOptions 4 0)
+
     let actual =
-        getFeedPagedWithReader mockReader testUrl { pageSize = 4; pageNumber = 0 }
+        getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
         |> Async.RunSynchronously
         |> okOrFail
 
@@ -206,8 +215,10 @@ let ``paging - not first page`` () =
                     createSRFeedItem ()
                     createSRFeedItem () ] }
 
+    let pagingOpts = unwrap (createPagingOptions 4 0)
+
     let actual =
-        getFeedPagedWithReader mockReader testUrl { pageSize = 4; pageNumber = 0 }
+        getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
         |> Async.RunSynchronously
         |> okOrFail
 
@@ -235,8 +246,10 @@ let ``paging - last page`` () =
                   [ createSRFeedItem ()
                     createSRFeedItem () ] }
 
+    let pagingOpts = unwrap (createPagingOptions 2 1)
+
     let actual =
-        getFeedPagedWithReader mockReader testUrl { pageSize = 2; pageNumber = 1 }
+        getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
         |> Async.RunSynchronously
         |> okOrFail
 
@@ -261,8 +274,10 @@ let ``paging - last page partial`` () =
         { createSRFeed () with
               items = [ createSRFeedItem () ] }
 
+    let pagingOpts = unwrap (createPagingOptions 2 1)
+
     let actual =
-        getFeedPagedWithReader mockReader testUrl { pageSize = 2; pageNumber = 1 }
+        getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
         |> Async.RunSynchronously
         |> okOrFail
 
@@ -285,8 +300,10 @@ let ``paging - past last page`` () =
 
     let expected = { createSRFeed () with items = [] }
 
+    let pagingOpts = unwrap (createPagingOptions 2 5)
+
     let actual =
-        getFeedPagedWithReader mockReader testUrl { pageSize = 2; pageNumber = 5 }
+        getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
         |> Async.RunSynchronously
         |> okOrFail
 
@@ -309,9 +326,11 @@ let ``catches exn`` () =
             member this.ReadAsync url = raise (Exception())
             member this.GetAbsoluteUrl url = url }
 
+    let pagingOpts = unwrap (createPagingOptions 2 5)
+
     try
         let actual =
-            getFeedPagedWithReader mockReader testUrl { pageSize = 2; pageNumber = 5 }
+            getFeedPagedWithReader mockReader testUrl (Some pagingOpts)
             |> Async.RunSynchronously
 
         match actual with
